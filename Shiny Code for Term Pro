@@ -1,0 +1,351 @@
+#Author:Sierra Hawthorne
+
+
+
+#load needed packages to execute the following code
+library(shiny)
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+library(gganimate)
+library(rworldmap)
+
+#create your dataset prior to the ui
+#world2020<- read.csv("WHR20_DataForFigure2.1.csv")
+#worldhap<-read.csv("world-happiness-report-2019.csv")
+
+
+# Define UI for application that draws your plots
+#this nav item allows you to create tabs that better organize your plots
+ui <- navbarPage(
+  
+# Application title
+  titlePanel("World Happiness"),
+  
+# Sidebar with a checkboxGroupinput so the viewer may select their desired region
+  tabPanel("Region Happy Scores", #title given to the first tab seen by user)
+           sidebarPanel(checkboxGroupInput("region",
+                                           "Select a Region:",
+                                           c("Central and Eastern Europe", "Commonwealth of Independent States",
+                                             "East Asia", "Latin America and Caribbean","Middle East and North Africa",
+                                             "North America and ANZ", "South Asia", "Southeast Asia",
+                                             "Sub-Saharan Africa","Western Europe")
+           )),
+           
+           mainPanel(plotlyOutput("Plot1"),#note plotly output here
+                     strong(""),#How to bold included text onto app
+                     p(""))#How you can insert text onto each separate tab
+           ),
+  
+           
+  
+#-------------------------------------------------------------------------------------------------------------------------------
+tabPanel("Eco:Happy", #title given to the second tab seen by user)
+           sidebarPanel(checkboxGroupInput("region2",
+                                           "Select a Region:",
+                                           c("Central and Eastern Europe", "Commonwealth of Independent States",
+                                             "East Asia", "Latin America and Caribbean","Middle East and North Africa",
+                                             "North America and ANZ", "South Asia", "Southeast Asia",
+                                             "Sub-Saharan Africa","Western Europe")
+           )),
+            
+           
+           
+           mainPanel(plotlyOutput("Plot2"),
+                     strong(""),
+                     p(""))
+    ),
+#------------------------------------------------------------------------------------------------------------------------------
+tabPanel("Corrupt:Life Exp", #title given to the third tab seen by user)
+         sidebarPanel(checkboxGroupInput("region3",
+                                         "Select a Region:",
+                                         c("Central and Eastern Europe", "Commonwealth of Independent States",
+                                           "East Asia", "Latin America and Caribbean","Middle East and North Africa",
+                                           "North America and ANZ", "South Asia", "Southeast Asia",
+                                           "Sub-Saharan Africa","Western Europe")
+         )),
+         
+         
+         mainPanel(plotlyOutput("Plot3"),#Note your plot/plotly output here
+                   strong(""),
+                   p(""))
+),
+#-----------------------------------------------------------------------------------------------------------------------------
+tabPanel("Free:Positive", #title given to the fourth tab seen by user)
+         sidebarPanel(sliderInput("free",#there are several input options available for the user to slide/select
+                                  "Select desired Freedom Score:",
+                                  min = 1,
+                                  max = 155,#inspect your data table to find out your min/max values
+                                  value = 30)
+         ),
+         
+         
+         mainPanel(plotlyOutput("Plot4b"),
+                    plotlyOutput("Plot4"),
+                   strong(""),
+                   p(""))
+),
+#-------------------------------------------------------------------------------------------------------------------------------
+tabPanel("Gene:Happy", #title given to the fifth tab seen by user)
+         sidebarPanel(sliderInput("gen",
+                                  "Select Generosity Limit:",
+                                  min = -0.300907373,
+                                  max = 0.560663998,
+                                  value = 0.2)
+         ),
+         
+         mainPanel(plotlyOutput("Plot5b"),
+                  plotlyOutput("Plot5"),
+                               strong(""),
+                                p(""))
+),
+#------------------------------------------------------------------------------------------------------------
+tabPanel("Social:Gene",
+         mainPanel(imageOutput("Plot6"),
+                   strong(""),
+                   p(""))
+),
+#------------------------------------------------------------------------------------------------------------
+tabPanel("Happy: LifeExp",
+         mainPanel(imageOutput("Plot7"),
+                   strong(""),
+                   p(""))
+),
+#-----------------------------------------------------------------------------------------------------------
+tabPanel("TopTenHappy",
+        mainPanel(plotOutput("Plot8"),
+                  strong("Things to Know: "),
+                  p("-Highlighted above are 2020's top 10 happiest countries in the world"),
+                  p("-Yellow is widely recognized as the happiest color in the world"),
+                  p("-A majority of the happiest nations on Earth reside in Western Europe."),
+                  p("-France is Western Europe's largest country, ranking #24 in world content."))
+),
+#-----------------------------------------------------------------------------------------------------------
+tabPanel("NumberOneHappy",#name different tabs differently to avoid confusion of information
+         mainPanel(plotOutput("Plot9"),
+                   strong("Fun Facts about Finland: "),
+                   p("-Finland has been ranked 2020's number one happiest country in the world!"),
+                   p("-Finland also ranks number one on the list for world's top 10 ten coffee consuming nations."),
+                   p("-Finland is Europe's Prison-Break capitol."),
+                   p("-Afghanistan was reported to be the world's unhappiest country."))
+),
+#-----------------------------------------------------------------------------------------------------------
+tabPanel("Happy Composition",
+         mainPanel(plotlyOutput("Plot10"),
+                   strong(""),
+                   p(""))
+)
+#-----------------------------------------------------------------------------------------------------------
+)#remember to close out navbarPage you assigned to the ui using a closing parantheses
+
+################################################################################################################################
+# Define server logic required to draw a plot
+server <- function(input, output) {
+#assign the mainPanel output's name to the matching output$'s code
+  output$Plot1 <- renderPlotly({#specify whether R will render plot or plotly 
+#create a subeset from your data to specify to your console what data is being inserted/changed by user
+    world2020_region <- subset(world2020, world2020$'Regional indicator' %in% input$region)
+    
+#assign your plot's code inside of its output
+    p <-ggplot(data = world2020_region, mapping = aes(x = input$region, #the x-axis will be decided by the user
+                                                     y = world2020_region$'Ladder score',
+                                                     fill = world2020_region$'Country name')) +
+      geom_col()+
+      labs(x= "Region",y= "Happiness Ranking",
+           title = "Rankings for Every Region's Happiness Level",
+           subtitle="Year: 2020",
+           caption="Source: Kaggle- World Happiness Report 2020")
+    ggplotly(p)# remember to plot your data 
+    
+  })
+  #-----------------------------------------------------------------------------------------------------------------------------
+  output$Plot2 <- renderPlotly({
+    world2020_region2 <- subset(world2020, world2020$"Regional indicator"  %in% input$region2)
+    
+    
+    n<-ggplot(data = world2020_region2, mapping = aes(x = world2020_region2$'Logged GDP per capita',
+                                               y = world2020_region2$'Ladder score',
+                                               fill = input$region2))+
+      geom_point()+
+      geom_smooth(method = lm, color = "pink")+
+      labs(title="Country's Economy vs. Their Happiness",
+           x= "GDP Per Capita",
+           y= "Happiness Score",
+           caption= "Source:Kaggle- World Happiness Report 2020")
+    
+    ggplotly(n)
+  })                          
+  ##########################################################################################
+  output$Plot3 <- renderPlotly({
+    world2020_region <- subset(world2020, world2020$"Regional indicator" %in% input$region3)
+    
+    m <-ggplot(data= world2020_region,
+               mapping= aes(x = input$region3, 
+                            y= world2020_region$"Perceptions of corruption", 
+                            fill = world2020_region$"Healthy life expectancy"))+
+      geom_col()+
+      labs(x= "Region",y= "Corruptive Outlook",
+           title = "Corruption's Effect on Average Life Expectancy",
+           subtitle="Year: 2020",
+           caption="Source: Kaggle")
+    ggplotly(m)
+    
+  })
+#---------------------------------------------------------------------------------------------------------------------------
+  
+#----------------------------------------------------------------------------------------------------
+  output$Plot4b <- renderPlotly({
+    
+    w <- ggplot(data = worldhap, aes(x = Freedom , y =worldhap$"Positive affect", fill = worldhap$"Country (region)"))+
+      geom_point(shape = 1)+
+      geom_smooth(size = 0.5, method = "loess", se = FALSE)+
+      theme(legend.position = "none")+
+      labs(title="Freedom's Positive Effect Worldwide",
+           x= "Freedom Score",
+           y= "Positive Affect",
+           caption= "Source:Kaggle- World Happiness")
+    
+    ggplotly(w)
+  })
+#-------------------------------------------------------------------------------------------------------- 
+  output$Plot4 <- renderPlotly({#mainPanel including "Plot4" should read "plotlyOutput" to match the render
+    worldhap_free <- subset(worldhap, Freedom %in% input$free)
+    
+    k <- ggplot(data = worldhap, aes(x = input$free,
+                                     y =worldhap$"Positive affect", 
+                                     fill = worldhap$"Country (region)"))+
+      geom_point(shape = 1)+
+      geom_smooth(size = 0.5, method = "loess", se = FALSE)+
+      theme(legend.position = "none")+
+      labs(title="
+    Freedom's Positive Effect Worldwide(Interactive)",
+           x= "Freedom Score",
+           y= "Positive Affect",
+           caption= "Source:Kaggle- World Happiness")
+    
+    ggplotly(k)
+    
+  })
+#----------------------------------------------------------------------------------------------------------
+  output$Plot5b <- renderPlotly({
+    
+    z <- ggplot(data = world2020, aes(x = Generosity , y =world2020$"Ladder score", fill = world2020$"Country name"))+
+    geom_point(shape = 1)+
+    geom_smooth(method= lm, color = "pink")+
+    theme(legend.position = "none")+
+    labs(title="Generosity's Effect on Happiness Worldwide",
+         x= "Generosity Score",
+         y= "Happiness Score",
+         caption= "Source:Kaggle- World Happiness Report 2020")
+  
+  ggplotly(z)  
+  
+ })
+#---------------------------------------------------------------------------------------------------------------------------
+  output$Plot5 <- renderPlotly({
+    
+    world2020_gen <- subset(world2020, Generosity %in% input$gen)
+    
+    l <- ggplot(data = world2020, aes(x = input$gen, 
+                                      y =world2020$"Ladder score", 
+                                      fill = world2020$"Country name"))+
+      geom_point(shape = 1)+
+      geom_smooth(method= lm, color = "pink")+
+      theme(legend.position = "none")+
+      labs(title="
+  Generosity's Effect on Happiness Worldwide(Interactive)",
+           x= "Generosity Score",
+           y= "Happiness Score",
+           caption= "Source:Kaggle- World Happiness Report 2020")
+    
+    ggplotly(l)
+    
+  })
+#------------------------------------------------------------------------------------------------------------
+  output$Plot6 <- renderImage({#gganimations require renderImage instead of renderPlot or renderPlotly
+    
+    q <-ggplot(world2020, aes(Generosity, world2020$"Social support", colour = world2020$"Regional indicator" ))+
+      geom_point() +
+      transition_states(
+        world2020$"Regional indicator",
+        transition_length = 3,
+        state_length= 1)+
+      enter_fade()+
+      exit_shrink()+
+      ease_aes('sine-in-out')+
+      theme(axis.text.x = element_text (angle = 90))+
+      #Here comes the gganimate code
+      labs(title="Worldwide Social Support vs. Generosity",
+           subtitle= "By Region: {closest_state}",
+           x= " Region's Generosity Score",
+           y= "Region's Social Support Rate",
+           caption= "Source: Kaggle- World Happiness 2020")
+    
+#saving gganimate
+    anim_save("q.gif", q)
+#call the animation
+    list(src = "q.gif")
+    
+  })
+#-----------------------------------------------------------------------------------------------------------
+  output$Plot7 <- renderImage({
+    
+  b <-ggplot(world2020, aes(world2020$"Ladder score", world2020$"Healthy life expectancy", colour = world2020$"Regional indicator"))+
+    geom_point(alpha = 0.5)+
+    transition_states(world2020$"Regional indicator",
+                      transition_length = 2,
+                      state_length= 1)+
+    scale_size(range = c(2,15))+
+    scale_x_log10() +
+    facet_wrap(~world2020$"Regional indicator")+
+    labs(title="World Happiness vs. Worldly Life Expectancy",
+         subtitle= "By Region: {closest_state}",
+         x= "Happiness Score",
+         y= "Life Expectancy",
+         caption= "Source: Kaggle- World Happiness 2020")
+#save the second gganimate
+  anim_save("b.gif", b)
+#call the animation
+  list(src = "b.gif")
+  
+  
+  })
+#----------------------------------------------------------------------------------------------------------
+ output$Plot8 <- renderPlot({
+   
+  data=(wrld_simpl)
+  myCountries = wrld_simpl@data$NAME %in% c("Finland", "Denmark", "Norway", "Iceland", 
+                                            "Sweden", "Netherlands", "New Zealand", 
+                                            "Switzerland", "Austria", "Canada")
+  plot(wrld_simpl, col = c(gray(.90), "yellow")[myCountries+1])
+  
+ })
+#----------------------------------------------------------------------------------------------------------
+ output$Plot9 <- renderPlot({
+   
+    data=(wrld_simpl)
+    myCountries = wrld_simpl@data$NAME %in% c("Finland")#choose the desired nation(s) you would like to highlight
+    plot(wrld_simpl, col = c(gray(.90), "yellow", mapTitle = "Test")[myCountries+1])
+   
+ }) 
+  
+#----------------------------------------------------------------------------------------------------------
+ output$Plot10 <- renderPlotly({
+   
+   pi <- plot_ly(world2020, labels = ~world2020$"Regional indicator",
+                  values = ~world2020$"Ladder score", 
+                  type = 'pie')
+   pi <- pi %>% layout(title = 'World Happiness Composition',
+                         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+   
+   pi
+   
+ })
+ 
+#############################################################################################################
+
+}#remember to close out the server function that all of your outputs to the app are found
+
+# Run the application
+shinyApp(ui = ui, server = server)
