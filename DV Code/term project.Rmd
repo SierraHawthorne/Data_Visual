@@ -1,0 +1,173 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+install.packages("sf")
+install.packages("rworldmap")
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+library(gganimate)
+library(rworldmap)
+
+```
+
+#worldhap-->
+#world2020-->
+
+
+```{r}
+world2020
+```
+
+```{r}
+worldhap
+```
+
+#Interactive Geom_col 1(Region:Happiness)
+```{r}
+m<-ggplot(data= world2020,
+mapping= aes(x = world2020$"Regional indicator" , y= world2020$"Ladder score", fill= world2020$"Country name"))+
+geom_col() +
+theme(axis.text.x = element_text (angle = 90), legend.position = "none")+
+labs(x= "Region",y= "Happiness Ranking",
+title = "Rankings for Every Region's Happiness Level",
+subtitle="Year: 2020",
+caption="Source: Kaggle- World Happiness Report 2020")
+
+plot(m)
+
+```
+
+#Interactive Geom_col 2 (Economic:Happiness)
+```{r}
+ggplot(data = world2020, aes(x = world2020$"Logged GDP per capita" , y = world2020$"Ladder score", fill = world2020$"Regional indicator"))+
+geom_point(shape = 1)+
+geom_smooth(method= lm, color = "pink")+
+theme(axis.text.x = element_text (angle = 30))+
+labs(title="Country's Economy vs. Their Happiness",
+x= "GDP Per Capita",
+y= "Happiness Score",
+caption= "Source:Kaggle- World Happiness Report 2020")
+
+ggplotly(p)
+
+```
+
+#Interactive Graph 3 (Corruption: Life Expectancy)
+```{r}
+p <-ggplot(data= world2020,
+mapping= aes(x = world2020$"Regional indicator", y= world2020$"Perceptions of corruption", color = world2020$"Healthy life expectancy"))
+p + geom_col() + guides(fill = FALSE)+
+theme(axis.text.x = element_text (angle = 90))+
+labs(x= "Region",y= "Corruptive Outlook",
+title = "Corruption's Effect on Average Life Expectancy",
+subtitle="Year: 2020",
+caption="Source: Kaggle")
+ 
+```
+
+#Interactive Geom_point 4 (Freedom:Positive Effect)
+#Add smoothing
+```{r}
+p <- ggplot(data = worldhap, aes(x = Freedom , y =worldhap$"Positive affect", fill = worldhap$"Country (region)"))+
+geom_point(shape = 1)+
+geom_smooth(size = 0.5, method = "loess", se = FALSE)+
+theme(legend.position = "none")+
+labs(title="Freedom's Positive Effect Worldwide",
+x= "Freedom Score",
+y= "Positive Affect",
+caption= "Source:Kaggle- World Happiness")
+
+ggplotly(p)
+```
+
+#Interactive Geom_Point 5(Generosity:Happiness)
+```{r}
+p <- ggplot(data = world2020, aes(x = Generosity , y =world2020$"Ladder score", fill = world2020$"Country name"))+
+geom_point(shape = 1)+
+geom_smooth(method= lm, color = "pink")+
+theme(legend.position = "none")+
+labs(title="Generosity's Effect on Happiness Worldwide",
+x= "Generosity Score",
+y= "Happiness Score",
+caption= "Source:Kaggle- World Happiness Report 2020")
+
+ggplotly(p)
+```
+
+#GGAnimate Graph 1 (Social Support:Generosity)
+```{r}
+ggplot(world2020, aes(Generosity, world2020$"Social support", colour = world2020$"Regional indicator" ))+
+geom_point() +
+transition_states(
+world2020$"Regional indicator",
+transition_length = 3,
+state_length= 1)+
+enter_fade()+
+exit_shrink()+
+ease_aes('sine-in-out')+
+theme(axis.text.x = element_text (angle = 90))+
+#Here comes the gganimate code
+labs(title="Worldwide Social Support vs. Generosity",
+subtitle= "By Region: {closest_state}",
+x= " Region's Generosity Score",
+y= "Region's Social Support Rate",
+caption= "Source: Kaggle- World Happiness 2020")
+
+ 
+```
+
+#GGAnimate Graph 2 (Discussion Point Plot)
+```{r}
+ggplot(world2020, aes(world2020$"Ladder score", world2020$"Healthy life expectancy", colour = world2020$"Regional indicator"))+
+geom_point(alpha = 0.5)+
+transition_states(world2020$"Regional indicator",
+transition_length = 2,
+state_length= 1)+
+scale_size(range = c(2,15))+
+scale_x_log10() +
+facet_wrap(~world2020$"Regional indicator")+
+labs(title="World Happiness vs. Worldly Life Expectancy",
+subtitle= "By Region: {closest_state}",
+x= "Happiness Score",
+y= "Life Expectancy",
+caption= "Source: Kaggle- World Happiness 2020")
+```
+
+
+#Map 1 (Top 10 Happiest Countries)
+```{r}
+library(maptools)
+    data=(wrld_simpl)
+    myCountries = wrld_simpl@data$NAME %in% c("Finland", "Denmark", "Norway", "Iceland", "Sweden", "Netherlands", "New Zealand", "Switzerland", "Austria", "Canada")
+    plot(wrld_simpl, col = c(gray(.80), "yellow")[myCountries+1])
+```
+
+#Map 2 (Finland- Happiest Place on Earth)
+```{r}
+library(maptools)
+    data=(wrld_simpl)
+    myCountries = wrld_simpl@data$NAME %in% c("Finland")+
+        #choose the desired nation(s) you would like to highlight
+    plot(wrld_simpl, col = c(gray(.80), "yellow")[myCountries+1])
+```
+
+#Plot 10! World Happiness Pie Chart
+```{r}
+library(plotly)
+pie <- plot_ly(world2020, labels = ~world2020$"Regional indicator", values = ~world2020$"Ladder score", type = 'pie')
+pie <- pie %>% layout(title = 'World Happiness Composition',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+pie
+```
+
+
+
